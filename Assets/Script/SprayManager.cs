@@ -1,62 +1,94 @@
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class SprayManager : MonoBehaviour
 {
-    public ParticleSystem[] particles;
-    public GameObject[] points;
+    private Vector3 screenPoint;
+    private Vector3 offset;
+
+    private Vector3 startPos;
 
     [SerializeField]
-    private List<GameObject> instPoints = new List<GameObject>();
-    private List<GameObject> onStencilPoints = new List<GameObject>();
+    private float scale = 1f;
 
-    public GameObject parent;
-    public float offset = -0.02f;
+    [SerializeField]
+    private bool holdingSpray = false;
+    public int maxParticles = 2000;
 
-    public bool holdingSpray = false;
-    public int currentColorIndex;
+    public ParticleSystem spray;
 
-    // Set Current Stencil
-    public GameObject stencil;
+    public Transform outerParent;
+    public Transform innerParent;
+    public SprayDockManager dockManager;
+
+    public int sprayIndex;
+
+    private void Start()
+    {
+        startPos = gameObject.transform.position;
+    }
 
     private void Update()
     {
-    //    Vector3 pos = Input.mousePosition;
-
-    //    Ray ray = Camera.main.ScreenPointToRay(pos);
-
-    //    if (Input.GetMouseButton(1))
-    //    {
-    //        RaycastHit hit;
-
-    //        if (Physics.Raycast(ray, out hit))
-    //        {
-
-    //            if (holdingSpray)
-    //            {
-    //                if (!hit.collider.CompareTag("Stencil"))
-    //                {
-    //                    Vector3 position = new Vector3(hit.point.x, hit.point.y, hit.point.z + offset);
-    //                    GameObject inst = Instantiate(points[currentColorIndex], position, points[currentColorIndex].transform.rotation, parent.transform);
-    //                    instPoints.Add(inst);
-    //                }
-    //                else
-    //                {
-    //                    Vector3 position = new Vector3(hit.point.x, hit.point.y, hit.point.z + offset);
-    //                    GameObject inst = Instantiate(points[currentColorIndex], position, points[currentColorIndex].transform.rotation, stencil.transform);
-    //                    onStencilPoints.Add(inst);
-    //                }
-    //            }
-    //            ray = new Ray();
-    //        }
-    //    }
+        if (holdingSpray)
+        {
+            if (Input.GetMouseButtonDown(1))
+            {
+                spray.maxParticles = maxParticles;
+                spray.Play();
+            }
+            if (Input.GetMouseButtonUp(1))
+            {
+                spray.maxParticles = 0;
+            }
+        }
     }
-
-    public void OnClickClear()
+    void OnMouseDown()
     {
-        SceneManager.LoadScene(0);
+        ScaleObject(scale);
+        holdingSpray = true;
+
+        transform.parent = outerParent;
+        dockManager.FillGap();
+
+        screenPoint = Camera.main.WorldToScreenPoint(transform.position);
+        offset = transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
     }
 
-    
+
+    void OnMouseDrag()
+    {
+        Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
+
+        Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
+        transform.position = curPosition;
+    }
+
+    private void OnMouseUp()
+    {
+        ReduceObject(scale);
+
+        holdingSpray = false;
+        transform.position = startPos;
+        spray.maxParticles = 0;
+
+        // REadjust the Dock
+        transform.parent = innerParent;
+        dockManager.FillGap();
+    }
+
+    void ScaleObject(float diff)
+    {
+        transform.localScale = new Vector3(transform.localScale.x + diff,
+                                           transform.localScale.y + diff,
+                                           transform.localScale.z + diff);
+    }
+
+    void ReduceObject(float diff)
+    {
+        transform.localScale = new Vector3(transform.localScale.x - diff,
+                                           transform.localScale.y - diff,
+                                           transform.localScale.z - diff);
+    }
+
+
 }

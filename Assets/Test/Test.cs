@@ -22,59 +22,59 @@ public class Test : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0))
-        {
-            ps.Play();
-        }
-        if(Input.GetMouseButtonUp(0))
-        {
-            ps.maxParticles = 0;
-        }
+        //if(Input.GetMouseButtonDown(0))
+        //{
+        //    ps.Play();
+        //}
+        //if(Input.GetMouseButtonUp(0))
+        //{
+        //    ps.maxParticles = 0;
+        //}
 
-        if (Input.GetMouseButtonDown(1))
-        {
-            ps.maxParticles = 2000;
-        }
+        //if (Input.GetMouseButtonDown(1))
+        //{
+        //    ps.maxParticles = 2000;
+        //}
 
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            ChangeCollider(newTrigger);
-            RemoveExtraParticles();
-        }
-    }
-
-    void RemoveExtraParticles()
-    {
-        int count = ps.GetTriggerParticles(ParticleSystemTriggerEventType.Inside, collidedPar);
-
-        for (int i = 0; i < count; i++)
-        {
-            ParticleSystem.Particle p = collidedPar[i];
-            p.remainingLifetime = 0;
-            collidedPar[i] = p;
-        }
-        ps.SetTriggerParticles(ParticleSystemTriggerEventType.Inside, collidedPar);
+        //if (Input.GetKeyDown(KeyCode.C))
+        //{
+        //    ChangeCollider(newTrigger);
+        //    RemoveExtraParticles();
+        //}
     }
 
     private void OnParticleTrigger()
     {
-        int count = ps.GetTriggerParticles(ParticleSystemTriggerEventType.Enter, otherPar);
+        //int count = ps.GetTriggerParticles(ParticleSystemTriggerEventType.Enter, otherPar);
+
+        //for (int i = 0; i < count; i++)
+        //{
+        //    ParticleSystem.Particle p = otherPar[i];
+        //    p.velocity = new Vector3(0, 0, 0);
+        //    p.remainingLifetime = Mathf.Infinity;
+        //    otherPar[i] = p;
+        //}
+        //ps.SetTriggerParticles(ParticleSystemTriggerEventType.Enter, otherPar);
+
+        int count = ps.GetTriggerParticles(ParticleSystemTriggerEventType.Enter, collidedPar);
+
+        
+        //for (int i = 0; i < count2; i++)
+        //{
+        //    ParticleSystem.Particle p = otherPar[i];
+        //    p.remainingLifetime = 0;
+        //    otherPar[i] = p;
+        //}
 
         for (int i = 0; i < count; i++)
         {
-            ParticleSystem.Particle p = otherPar[i];
+            ParticleSystem.Particle p = collidedPar[i];
             p.velocity = new Vector3(0, 0, 0);
             p.remainingLifetime = Mathf.Infinity;
-            otherPar[i] = p;
+            collidedPar[i] = p;
         }
-        ps.SetTriggerParticles(ParticleSystemTriggerEventType.Enter, otherPar);
-    }
 
-    void ChangeCollider(Transform collider)
-    {
-        ps.trigger.RemoveCollider(0);
-
-        ps.trigger.AddCollider(collider);
+        ps.SetTriggerParticles(ParticleSystemTriggerEventType.Enter, collidedPar);
     }
 
 }

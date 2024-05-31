@@ -2,32 +2,40 @@ using UnityEngine;
 
 public class StensilManager : MonoBehaviour
 {
-    [SerializeField]
-    private static Vector3 startPos;
-    private static bool gotPos = false;
-
     private Vector3 screenPoint;
     private Vector3 offset;
 
-    private GameObject parent;
-    public SprayManager sprayManager;
+    public float shelfEdge;
+    private bool removedOut = false;
 
-    [SerializeField]
-    private float xOffset = -3f;
-    public static Particle particle;
+    public Transform outerParent;
+    public Transform innerParent;
 
-    public bool initialmove = false;
+    ShelfManager shelfManager;
 
-    void Start()
+    private void Start()
     {
-        sprayManager = GameObject.Find("SprayManager").GetComponent<SprayManager>();
+        if (!shelfManager)
+        {
+            shelfManager = GameObject.Find("Shelf").GetComponent<ShelfManager>();
+        }
     }
+
 
     void OnMouseDown()
     {
+        // Remove Stencil Out
+        if (!removedOut && shelfManager.isopen)
+        {
+            transform.parent = outerParent;
+            removedOut = true;
+            shelfManager.CloseTheShelf();
+        }
+
         screenPoint = Camera.main.WorldToScreenPoint(transform.position);
         offset = transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
     }
+
 
     void OnMouseDrag()
     {
@@ -35,13 +43,20 @@ public class StensilManager : MonoBehaviour
 
         Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint) + offset;
         transform.position = curPosition;
+
     }
 
     private void OnMouseUp()
     {
-        if (transform.position.x < xOffset)
+        if (shelfManager.isopen)
         {
-            transform.position = startPos;
+            if (gameObject.transform.position.x < shelfEdge)
+            {
+                removedOut = false;
+                transform.parent = innerParent;
+                shelfManager.CloseTheShelf();
+            }
         }
     }
+
 }
