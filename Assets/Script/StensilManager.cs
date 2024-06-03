@@ -13,6 +13,9 @@ public class StensilManager : MonoBehaviour
 
     ShelfManager shelfManager;
 
+    public float minScale;
+    public float maxScale;
+
     private void Start()
     {
         if (!shelfManager)
@@ -30,6 +33,9 @@ public class StensilManager : MonoBehaviour
             transform.parent = outerParent;
             removedOut = true;
             shelfManager.CloseTheShelf();
+
+            // When removed from shelf then scale the stennsil to original size
+            ScaleObject();
         }
 
         screenPoint = Camera.main.WorldToScreenPoint(transform.position);
@@ -55,8 +61,19 @@ public class StensilManager : MonoBehaviour
                 removedOut = false;
                 transform.parent = innerParent;
                 shelfManager.CloseTheShelf();
+
+                ReduceObject();
             }
         }
+    }
+    void ScaleObject()
+    {
+        transform.localScale = new Vector3(maxScale,maxScale,maxScale);
+    }
+
+    void ReduceObject()
+    {
+        transform.localScale = new Vector3(minScale, minScale, minScale);
     }
 
 }
