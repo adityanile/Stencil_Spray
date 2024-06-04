@@ -21,6 +21,13 @@ public class SprayManager : MonoBehaviour
     public SprayDockManager dockManager;
 
     public int sprayIndex;
+    public Vector3 pos;
+
+    private ParticlePaint paint;
+    public Color sprayColor;
+
+    public float speed = 2;
+    public float dockOffset = 0.01f;
 
     private void Start()
     {
@@ -41,7 +48,19 @@ public class SprayManager : MonoBehaviour
                 spray.maxParticles = 0;
             }
         }
+
+        //// Now always move spray to this position
+        //float distance = Vector3.Distance(pos, transform.position);
+
+        //if(distance > dockOffset)
+        //{
+        //    Vector3 direction = (pos - transform.position).normalized;
+        //    transform.Translate(direction * Time.deltaTime * speed);
+        //}
+
     }
+
+
     void OnMouseDown()
     {
         ScaleObject(scale);
@@ -49,6 +68,12 @@ public class SprayManager : MonoBehaviour
 
         transform.parent = outerParent;
         dockManager.FillGap();
+
+        if (!paint)
+        {
+            paint = GameObject.Find("Background").GetComponent<ParticlePaint>();
+        }
+        paint.ChangeColor(sprayColor);
 
         screenPoint = Camera.main.WorldToScreenPoint(transform.position);
         offset = transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));

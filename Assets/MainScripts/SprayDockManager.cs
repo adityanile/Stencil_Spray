@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,14 +7,20 @@ public class SprayDockManager : MonoBehaviour
     [SerializeField]
     private List<Transform> sprays = new List<Transform>();
 
+    [SerializeField]
+    private Vector3[] position;
+
     public float offset;
-    public float startPos = 0;
+    public Vector3 startPos;
 
     private float parentOffset;
 
     private void Start()
     {
+        startPos = new Vector3(0, transform.position.y, transform.position.z);
+
         parentOffset = transform.position.x;
+        startPos.x += parentOffset;
 
         FillGap();
     }
@@ -42,6 +47,7 @@ public class SprayDockManager : MonoBehaviour
                 sprays[i].GetComponent<SprayManager>().sprayIndex = i;
             }
         }
+        position = new Vector3[sprays.Count];
     }
 
     void Sort()
@@ -56,13 +62,12 @@ public class SprayDockManager : MonoBehaviour
 
     public void FillGap()
     {
-        Sort();
         GetChilds();
 
-        for (int i=0; i < sprays.Count; i++)
+        for (int i = 0; i < sprays.Count; i++)
         {
             Transform temp = sprays[i];
-            temp.position =  new Vector3(startPos + i*offset + parentOffset, temp.position.y, temp.position.z);
+            temp.position = new Vector3(startPos.x + i * offset, temp.position.y, temp.position.z);
         }
     }
 
