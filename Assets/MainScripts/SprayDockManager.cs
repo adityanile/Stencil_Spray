@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,30 +8,61 @@ public class SprayDockManager : MonoBehaviour
     [SerializeField]
     private List<Transform> sprays = new List<Transform>();
 
-    [SerializeField]
-    private Vector3[] position;
-
     public float offset;
-    public Vector3 startPos;
+    public float dockOpenAnim = 1;
 
-    private float parentOffset;
+    public float startPos;
+    public float endPos;
+
+    private float sprayY;
+    private float sprayZ;
+
+    public float[] pos;
+
+    public bool initial = true;
 
     private void Start()
     {
-        startPos = new Vector3(0, transform.position.y, transform.position.z);
+        SetEgde();
 
-        parentOffset = transform.position.x;
-        startPos.x += parentOffset;
+        GetChilds();
+        AllocateStartPos();
+    }
+    public void AllocateStartPos()
+    {
+        Sort();
+        float offset = GetOffset();
 
-        FillGap();
+        if (initial)
+        {
+            initial = false;
+
+            sprayY = sprays[0].position.y;
+            sprayZ = sprays[0].position.z;
+        }
+        else
+        {
+            sprayY = pos[0];
+            sprayZ = pos[1];
+        }
+
+        for(int i = 0; i < sprays.Count; i++)
+        {
+            Vector3 pos = new Vector3(startPos + i * offset, sprayY, sprayZ);
+            sprays[i].GetComponent<SprayManager>().SetStartPos(pos);
+        }
     }
 
-    private void Update()
+    void SetEgde()
     {
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            SceneManager.LoadScene(0);
-        }
+        GetChilds();
+        startPos = sprays[0].position.x;
+        endPos = sprays[sprays.Count - 1].position.x;
+    }
+
+    public float GetOffset()
+    {
+        return (endPos - startPos)/(sprays.Count);
     }
 
     private void GetChilds()
@@ -47,7 +79,6 @@ public class SprayDockManager : MonoBehaviour
                 sprays[i].GetComponent<SprayManager>().sprayIndex = i;
             }
         }
-        position = new Vector3[sprays.Count];
     }
 
     void Sort()
@@ -58,16 +89,27 @@ public class SprayDockManager : MonoBehaviour
             Transform temp = sprays[i];
             temp.SetSiblingIndex(temp.GetComponent<SprayManager>().sprayIndex);
         }
+        GetChilds();
     }
 
-    public void FillGap()
+    public void ClickedOnSpray()
+    {
+        StartCoroutine(AfterDockOpenAnim());
+    }
+
+    // TO set starting position of the sprays when after the animation is ended
+    IEnumerator AfterDockOpenAnim()
+    {
+        yield return new WaitForSeconds(dockOpenAnim);
+        SetStartPos();
+    }
+    void SetStartPos()
     {
         GetChilds();
 
-        for (int i = 0; i < sprays.Count; i++)
+        foreach (var i in sprays)
         {
-            Transform temp = sprays[i];
-            temp.position = new Vector3(startPos.x + i * offset, temp.position.y, temp.position.z);
+            i.GetComponent<SprayManager>().SetStartPos(i.transform.position);
         }
     }
 

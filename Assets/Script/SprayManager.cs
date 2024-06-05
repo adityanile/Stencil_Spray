@@ -5,6 +5,7 @@ public class SprayManager : MonoBehaviour
     private Vector3 screenPoint;
     private Vector3 offset;
 
+    [SerializeField]
     private Vector3 startPos;
 
     [SerializeField]
@@ -12,7 +13,9 @@ public class SprayManager : MonoBehaviour
 
     [SerializeField]
     private bool holdingSpray = false;
+    
     public int maxParticles = 2000;
+    public int emissionRate = 50000;
 
     public ParticleSystem spray;
 
@@ -21,7 +24,6 @@ public class SprayManager : MonoBehaviour
     public SprayDockManager dockManager;
 
     public int sprayIndex;
-    public Vector3 pos;
 
     private ParticlePaint paint;
     public Color sprayColor;
@@ -29,10 +31,7 @@ public class SprayManager : MonoBehaviour
     public float speed = 2;
     public float dockOffset = 0.01f;
 
-    private void Start()
-    {
-        startPos = gameObject.transform.position;
-    }
+    public bool stackSpray = false;
 
     private void Update()
     {
@@ -41,23 +40,30 @@ public class SprayManager : MonoBehaviour
             if (Input.GetMouseButtonDown(1))
             {
                 spray.maxParticles = maxParticles;
+                spray.emissionRate = emissionRate;
+                spray.loop = true;
+
                 spray.Play();
             }
             if (Input.GetMouseButtonUp(1))
             {
                 spray.maxParticles = 0;
+                spray.loop = false;
             }
         }
 
-        //// Now always move spray to this position
-        //float distance = Vector3.Distance(pos, transform.position);
+        if (stackSpray || !holdingSpray)
+        {
+            // Now always move spray to this position
+            float distance = Vector3.Distance(startPos, transform.position);
 
-        //if(distance > dockOffset)
-        //{
-        //    Vector3 direction = (pos - transform.position).normalized;
-        //    transform.Translate(direction * Time.deltaTime * speed);
-        //}
+            if (distance > dockOffset)
+            {
+                Vector3 direction = (startPos - transform.position).normalized;
+                transform.Translate(direction * Time.deltaTime * speed);
+            }
 
+        }
     }
 
 
@@ -66,8 +72,11 @@ public class SprayManager : MonoBehaviour
         ScaleObject(scale);
         holdingSpray = true;
 
+        speed = 12.4f;
+
         transform.parent = outerParent;
-        dockManager.FillGap();
+
+        dockManager.AllocateStartPos();
 
         if (!paint)
         {
@@ -90,15 +99,28 @@ public class SprayManager : MonoBehaviour
 
     private void OnMouseUp()
     {
-        ReduceObject(scale);
-
-        holdingSpray = false;
-        transform.position = startPos;
         spray.maxParticles = 0;
-
+        ReduceObject(scale);
         // REadjust the Dock
         transform.parent = innerParent;
-        dockManager.FillGap();
+        dockManager.AllocateStartPos();
+
+        stackSpray = true;
+    }
+
+
+    // After removing when collide with the dock again is handeled here
+    private void OnTriggerEnter(Collider other)
+    {
+        if (holdingSpray)
+        {
+            if (other.gameObject.CompareTag("SprayDock"))
+            {
+                speed = 3;
+                holdingSpray = false;
+                stackSpray = false;
+            }
+        }
     }
 
     void ScaleObject(float diff)
@@ -115,5 +137,9 @@ public class SprayManager : MonoBehaviour
                                            transform.localScale.z - diff);
     }
 
+    public void SetStartPos(Vector3 pos)
+    {
+        startPos = pos;
+    }
 
 }
